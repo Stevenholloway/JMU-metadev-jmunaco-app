@@ -1,0 +1,30 @@
+JMU NACO App permissions structure and final test (8/3/16) 
+Update (02/25/2017)
+
+
+All app components, including the collection folder, are owned by admin.  All app user accounts use JMU email for account name and include group:jmunaco. 
+jmunaco 			(group:jmunaco): 		crwxrwxr-x
+upload-process.xq	(group:jmunaco):		rwxrwx---
+user-save.xql 		(group:jmunaco): 		rwxrwx---
+user-edit.xql 		(group:jmunaco):  		rwxrwx---
+search.xql 			(group:dba):  			rwxrwxr-x
+repo.xml 			(group:dba):			rw-rw-r--
+pre-install.xql 	(group:dba):			rwxr-xr-x
+new.xql 			(group:dba):			rwxr-xr-x
+new.html 			(group:dba):			rwxr--r--
+index.html 			(group:dba):			rw-r--r--
+form.html 			(group:jmunaco):		rwxrwx---
+expath-pkg.xml 		(group:dba):			rw-rw-r--
+existing.html 		(group:dba):			rw-r--r--
+error-page.html: 	(group:dba):  			rw-r--r--
+controller.xql 		(group:dba):			rwxr-xr-x
+collection.xconf 	(group:dba):			rw-r--r--
+build.xml 			(group:dba):			rw-r--r--
+templates 			(group:dba):  			crwxrwxr-x
+resources 			(group:dba):  			crwxrwxr-x
+modules 			(group:dba):  			crwxrwxr-x
+export 				(group:dba):  			crwxrwxr-x
+data-archive 		(group:dba):  			crwxrwxr-x
+cv-data				(group:jmunaco):  		crwxrwxr-x
+data: 				(group:jmunaco):		crwxrwxr-x
+individual MARC authority files stored in data directory: (owner: Admin; group:jmunaco):	rw-rw----
