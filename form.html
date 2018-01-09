@@ -1,0 +1,395 @@
+<div xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xf="http://www.w3.org/2002/xforms" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" data-template="templates:surround" data-template-with="templates/page-noheader.html" data-template-at="content">
+    <xf:model id="authority-record-model">
+        <xf:instance xmlns="" id="authority-record">
+            <!-- empty record. a real one will be loaded upon authentication -->
+            <authorityRecord authenticated="false"/>
+        </xf:instance>
+        <xf:submission id="save-record" method="post" resource="/exist/apps/jmunaco/user-save.xql" replace="none">
+            <xf:message ev:event="xforms-submit-done" level="ephemeral">Thank you for taking the time to complete this form. We will notify you when your name authority record has been posted to the Library of Congress.</xf:message>
+            <xf:message ev:event="xforms-submit-error" level="ephemeral">An error occurred. Please contact us to let us know you're having problems.</xf:message>
+        </xf:submission>
+        <xf:instance xmlns="" id="authority-record-now">
+            <!-- empty record. a real one will be loaded upon authentication -->
+            <authorityRecord authenticated="false"/>
+        </xf:instance>
+        <xf:submission id="save-record-now" method="post" resource="/exist/apps/jmunaco/user-save.xql" replace="none"/>
+        
+        <!-- empty xml snippets for appending more data for fields with multiple values... maybe there's a simpler way to do this -->
+        <!-- inserted blankvariantName -->
+        <xf:instance xmlns="" id="blankvariantName">
+            <variantName>
+                <name/>
+            </variantName>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankLanguage">
+            <language>
+                <code/>
+            </language>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankDepartment">
+            <department>
+                <name/>
+                <startYear/>
+                <endYear/>
+            </department>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankInstitution">
+            <institution>
+                <name/>
+                <startYear/>
+                <endYear/>
+            </institution>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankProfessionalField1">
+            <professionalField1>
+                <name/>
+            </professionalField1>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankProfessionalField">
+            <professionalField>
+                <name/>
+            </professionalField>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankOccupation">
+            <occupation>
+                <name/>
+            </occupation>
+        </xf:instance>
+        <xf:instance xmlns="" id="blankCitation">
+            <citation>
+                <cite/>
+                <page/>
+            </citation>
+        </xf:instance>
+        <!-- the entire MARC language list :o -->
+        <xf:instance id="language-data" src="resources/languages.xml"/>
+        <xf:instance id="department-data" src="resources/departments.xml"/>
+        <xf:instance id="year-data">
+            <!-- see modules/app.xql for the template -->
+            <years data-template="app:years"/>
+        </xf:instance>
+    </xf:model>
+    <xf:model id="authentication-model">
+        <xf:instance xmlns="">
+            <credentials>
+                <EID/>
+                <group-password/>
+            </credentials>
+        </xf:instance>
+        <xf:submission id="authenticate" method="post" resource="/exist/apps/jmunaco/user-edit.xql" replace="instance" instance="authority-record"/>
+        <!-- conditionally use LDAP for auth; see modules/app.xql -->
+        <xf:action data-template="app:auto-auth"/>
+    </xf:model>
+    <!-- use 988 field for auth -->
+    <div data-template="app:auth-form"/>
+    <div class="col-md-12">
+        <div class="row">
+            <div class="block-form">
+                <xf:group model="authority-record-model" ref="/authorityRecord[@authenticated='true']">
+                    <fieldset>
+                        <legend>JMU Authority Record Form for Faculty</legend>
+                        <div>James Madison University Libraries and Educational Technologies would like to create or modify an existing authority record for you as part of the Library of Congress National Authority File.  We believe that the creation of authority records boosts the visibility of your scholarly publications and brings additional national and international prominence to JMU.</div>
+                        <p/>
+                        <div>Your authority record is a “personography” that details the preferred and fuller forms of your name, institutional affiliations, and professional identity, together with brief citations to no more than four publications.  Please include as much information as possible.  JMU Libraries staff will “translate” the descriptors you use for your professional fields of activity and occupations into controlled vocabularies.  We ask that you obtain an ORCID identifier, if you do not already possess one, and add it to your record -- we will add other online researcher identifiers of yours if we find them, or you supply them yourself.</div>
+                        <p/>
+                        <div>Here is an example of a populated JMU name authority record form: <a href="./resources/images/NAR-Example.png" target="_blank"> NAR example</a>
+                        </div>
+                        <p/>
+                        <div>When your authority record has been added to the Library of Congress National Authority File, we will email you with a link.</div>
+                        <p/>
+                        <div>On behalf of James Madison University, we thank you for taking the time to complete this form as a service to your employer.</div>
+                        <p/>
+                    </fieldset>
+                    <!-- pretty thoroughly revamped this section -->
+                    <fieldset>
+                        <legend>Biographical Information</legend>
+                        <xf:textarea ref="preferredName">
+                            <xf:label>Preferred Name [Last Name, First Name (Middle Names)]</xf:label>
+                            <xf:hint>The form of your name that you choose to be known by professionally or that you anticipate publishing under, if different from your full name (ex: preferred name Gates, Bill, versus variant name/full name Gates, William Henry III)</xf:hint>
+                            <xf:alert>Preferred Name is required.</xf:alert>
+                        </xf:textarea>
+           <!-- Added variant name field with multiple inserts capability -->
+                        <xf:repeat nodeset="variantNames/variantName" id="repeatvariantNames">
+                            <xf:textarea ref="name">
+                                <xf:label>Variant Name [Last Name, First Name (Middle Names)]</xf:label>
+                                <xf:hint>Variant or fuller forms of your name that could help search engines discover your scholarship (ex: Gates, William Henry III; Gates, Billy)</xf:hint>
+                            </xf:textarea>
+                        </xf:repeat>
+                        <xf:trigger>
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another variant name</xf:hint>
+                            <xf:insert nodeset="variantNames/variantName" at="index('repeatvariantNames')" position="after" origin="instance('blankvariantName')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//variantNames/variantName) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove a variant name</xf:hint>
+                                <xf:delete nodeset="variantNames/variantName" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                        <xf:input ref="birthDate">
+                            <xf:label>Birth Year</xf:label>
+                            <xf:hint>The year you were born. Library of Congress considers this information essential for establishing your identity, but leave it blank if you prefer.</xf:hint>
+                        </xf:input>
+                        <xf:textarea ref="city">
+                            <xf:label>City of Residence</xf:label>
+                            <xf:hint>The city or town in which you currently reside (ex: Harrisonburg, VA)</xf:hint>
+                            <xf:alert>City is required.</xf:alert>
+                        </xf:textarea>
+                        <xf:repeat nodeset="languages/language" id="repeatLanguages">
+                            <xf:select1 ref="code">
+                                <xf:label>Language</xf:label>
+                                <xf:hint>The language or languages you use for teaching, presentations and publication</xf:hint>
+                                <!-- hopefully show only languages that aren't marked as obsolete -->
+                                <xf:itemset nodeset="instance('language-data')/language[./code[@status != 'obsolete']]">
+                                    <xf:label ref="name"/>
+                                    <xf:value ref="code"/>
+                                </xf:itemset>
+                            </xf:select1>
+                        </xf:repeat>
+                        <xf:trigger class="inline">
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another language</xf:hint>
+                            <xf:insert nodeset="languages/language" at="index('repeatLanguages')" position="after" origin="instance('blankLanguage')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//languages/language) &gt; 1]">
+                            <xf:trigger class="inline">
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove a language</xf:hint>
+                                <xf:delete nodeset="languages/language" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Affiliation with JMU Departments and Other Institutions</legend>
+                        <div>Please list
+                            all of the JMU departments you have been affiliated with, whether as a student or faculty, with starting and
+                            ending dates expressed in years</div>
+                        <xf:repeat nodeset="departments/department" id="repeatDepartments">
+                            <xf:select1 ref="name">
+                                <xf:label>JMU Department</xf:label>
+                                <xf:itemset nodeset="instance('department-data')/department">
+                                    <xf:label ref="name"/>
+                                    <xf:value ref="name"/>
+                                </xf:itemset>
+                            </xf:select1>
+                            <xf:select1 ref="startYear">
+                                <xf:label>Start Date</xf:label>
+                                <xf:itemset nodeset="instance('year-data')/year">
+                                    <xf:label ref="."/>
+                                    <xf:value ref="."/>
+                                </xf:itemset>
+                            </xf:select1>
+                            <xf:select1 ref="endYear">
+                                <xf:label>End Date</xf:label>
+                                <xf:itemset nodeset="instance('year-data')/year">
+                                    <xf:label ref="."/>
+                                    <xf:value ref="."/>
+                                </xf:itemset>
+                            </xf:select1>
+                        </xf:repeat>
+                        <xf:trigger>
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another JMU department</xf:hint>
+                            <xf:insert nodeset="departments/department" at="index('repeatDepartments')" position="after" origin="instance('blankDepartment')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//departments/department) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove a JMU department</xf:hint>
+                                <xf:delete nodeset="departments/department" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                        <div>Other institutions you have been affiliated with, whether as a student or faculty, with starting and ending dates expressed in years (ex: George
+                            Washington University, starting date 2005)</div>
+                        <xf:repeat nodeset="institutions/institution" id="repeatInstitutions">
+                            <xf:textarea ref="name">
+                                <xf:label>Other Institution</xf:label>
+                            </xf:textarea>
+                            <xf:select1 ref="startYear">
+                                <xf:label>Start Date</xf:label>
+                                <xf:itemset nodeset="instance('year-data')/year">
+                                    <xf:label ref="."/>
+                                    <xf:value ref="."/>
+                                </xf:itemset>
+                            </xf:select1>
+                            <xf:select1 ref="endYear">
+                                <xf:label>End Date</xf:label>
+                                <xf:itemset nodeset="instance('year-data')/year">
+                                    <xf:label ref="."/>
+                                    <xf:value ref="."/>
+                                </xf:itemset>
+                            </xf:select1>
+                        </xf:repeat>
+                        <xf:trigger>
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another institution</xf:hint>
+                            <xf:insert nodeset="institutions/institution" at="index('repeatInstitutions')" position="after" origin="instance('blankInstitution')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//institutions/institution) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove an institution</xf:hint>
+                                <xf:delete nodeset="institutions/institution" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Academic Employment</legend>
+                        <div>Please list the colleges or universities you have been employed by as teaching or A&amp;P faculty (an entry for JMU as your employer has been automatically generated.)  We apologize for the redundancy with the preceding question.</div>
+                        <xf:repeat nodeset="professionalFields1/professionalField1" id="repeatProfessionalFields1">
+                            <xf:textarea ref="name">
+                                <xf:label>Institutional Employer</xf:label>
+                            </xf:textarea>
+                        </xf:repeat>
+                        <xf:trigger>
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another institutional employer</xf:hint>
+                            <xf:insert nodeset="professionalFields1/professionalField1" at="index('repeatProfessionalFields1')" position="after" origin="instance('blankProfessionalField1')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//professionalFields1/professionalField1) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove an institutional employer</xf:hint>
+                                <xf:delete nodeset="professionalFields1/professionalField1" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Professional Fields and Occupations</legend>
+                        <div>Your professional field(s) of activity. Add as many descriptors
+                            as necessary (ex: English literature; biochemistry; astrophysics;
+                            assyriology)</div>
+                        <xf:repeat nodeset="professionalFields/professionalField" id="repeatProfessionalFields">
+                            <xf:textarea ref="name">
+                                <xf:label>Professional Field</xf:label>
+                            </xf:textarea>
+                        </xf:repeat>
+                        <xf:trigger>
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another professional field</xf:hint>
+                            <xf:insert nodeset="professionalFields/professionalField" at="index('repeatProfessionalFields')" position="after" origin="instance('blankProfessionalField')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//professionalFields/professionalField) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove a professional field</xf:hint>
+                                <xf:delete nodeset="professionalFields/professionalField" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                        <div>Your primary vocational designation(s). Add as many descriptors as
+                            necessary (ex: educator; musician; lawyer; college administrator)</div>
+                        <xf:repeat nodeset="occupations/occupation" id="repeatOccupation">
+                            <xf:textarea ref="name">
+                                <xf:label>Primary Occupation</xf:label>
+                            </xf:textarea>
+                        </xf:repeat>
+                        <xf:trigger>
+                            <xf:label>+</xf:label>
+                            <xf:hint>Add another vocational designation</xf:hint>
+                            <xf:insert nodeset="occupations/occupation" at="index('repeatOccupations')" position="after" origin="instance('blankOccupation')" ev:event="DOMActivate"/>
+                        </xf:trigger>
+                        <xf:group ref=".[count(//occupations/occupation) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove a vocational designation</xf:hint>
+                                <xf:delete nodeset="occupations/occupation" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Publication Information</legend>
+                        <xf:repeat nodeset="citations/citation" id="repeatCitations">
+                            <div>Please supply a full publication citation, that uses the preferred form of your name, whether journal article, book chapter or other publication venue. If you cite a print publication, enter the page where the preferred form of your name
+                                appears (ex: p. vii) (ex: title page). Please provide no more than four citations.</div>
+                            <div>NOTE: LC authority records typically use an abbreviated citation style.  If the form loads with abbreviated examples of your publications, please do not expand or change them unless they are patently incorrect.</div>
+                            <xf:textarea ref="cite">
+                                <xf:label>Publication Citation</xf:label>
+                                <xf:hint>The purpose of this citation entry is to justify how we establish the "preferred" form of your name -- please use only publications that match, letter for letter, what you entered into the "Preferred Name" field at the top of this form.</xf:hint>
+                            </xf:textarea>
+                            <xf:textarea ref="page">
+                                <xf:label>Page Number</xf:label>
+                            </xf:textarea>
+                        </xf:repeat>
+                        <xf:group ref=".[count(//citations/citation) &lt; 6]">
+                            <xf:trigger>
+                                <xf:label>+</xf:label>
+                                <xf:hint>Add another citation</xf:hint>
+                                <xf:insert nodeset="citations/citation" at="index('repeatCitations')" position="after" origin="instance('blankCitation')" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                        <xf:group ref=".[count(//citations/citation) &gt; 1]">
+                            <xf:trigger>
+                                <xf:label>-</xf:label>
+                                <xf:hint>Remove a citation</xf:hint>
+                                <xf:delete nodeset="citations/citation" at="last()" ev:event="DOMActivate"/>
+                            </xf:trigger>
+                        </xf:group>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Supplemental Information</legend>
+                        <div>Please enter your ORCiD identifier here, including hyphens (ex: 0000-0002-7139-2625)</div>
+                        <div>What's this? ORCiD (Open Researcher Community ID) provides a
+                            persistent digital identifier that distinguishes you from every other
+                            researcher or author. Through integration in key workflows such as
+                            academic manuscript and grant submission, your ORCiD supports
+                            automated linkages between you and your professional activities,
+                            ensuring that your scholarship is correctly attributed to you. Increasing
+                            numbers of publishers, academic organizations and funding agencies
+                            require you to use an ORCiD. By creating an ORCID and associating it
+                            with your work, you are adding insurance that your name, and no other,
+                            will be unambiguously linked to your scholarly communication.
+                            Creating an ORCiD is simple and free of charge! You can register for an
+                            ORCiD ID at <a href="https://orcid.org/register" target="_blank">orcid.org</a>.  For more information about ORCiDs for JMU faculty, visit <a href="http://guides.lib.jmu.edu/orcid/orcid4faculty" target="_blank">orcid4faculty</a> on the JMU Libraries website.
+                        </div>
+                        <xf:input ref="ORCID">
+                            <xf:label>ORCiD ID</xf:label>
+                        </xf:input>
+                        <p/>
+                        <div>If you feel there is additional information that we need for
+                            your authority record that the online form fails to cover, including additional researcher identifiers, please tell us
+                            here.</div>
+                        <xf:textarea ref="other">
+                            <xf:label>Other Information</xf:label>
+                        </xf:textarea>
+                    </fieldset>
+                    <p/>
+<!--                    <fieldset>
+                        <xf:trigger>
+                            <xf:label>Save your name authority record and upload your CV</xf:label>
+                            <xf:action ev:event="DOMActivate">
+                            <xf:send submission="save-record" ev:event="DOMActivate"/>
+                            <form enctype="multipart/form-data" method="post" action="upload-process.xq">
+                                <input type="file" size="80" name="file-upload"/>
+                                <legend>Submit your CV:</legend>
+                                <xf:send type="submit"/>
+                                <br/>
+                                <p/>
+                            </form>
+                            </xf:action>
+                        </xf:trigger>
+                    </fieldset>-->
+                    <fieldset>
+                        <legend>Please save your name authority record information (you can return to it and contine to work on it for up to a calendar week):</legend>
+                        <xf:submit submission="save-record">
+                            <xf:label>Submit your name authority record!</xf:label>
+                        </xf:submit>
+                    </fieldset>
+<!--     The file upload function works fine, but any unsaved form data will be lost if a file is uploaded.                 -->
+                    
+<!--                    <fieldset>
+                        <p/>
+                        <div>If you upload a copy of your current CV, we will use it to verify the information you have supplied in the form submission.</div>
+                        <form enctype="multipart/form-data" method="post" action="upload-process.xq">
+                            <input type="file" size="80" name="file-upload"/>
+                            <legend>Submit your CV:</legend>
+                            <input type="submit"/>
+                            <br/>
+                            <p/>
+                        </form>
+                    </fieldset>-->
+                </xf:group>
+            </div>
+        </div>
+    </div>
+</div>
